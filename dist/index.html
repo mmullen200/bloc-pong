@@ -6,14 +6,26 @@
         margin: 10px;
         padding: 0px;
       }
+      .net {
+        border-right: black;
+        left: 545px;
+        position: absolute;
+        border-width: 5px;
+        border-right-style: dashed;
+        height: 600px;
+        top: 30px;
+      }
     </style>
   </head>
   <body>
+      <div class="net"></div>
     <canvas id="myCanvas" width="1000" height="600" style="border:20px solid #00FF00;"></canvas>
     <script>
       var canvas = document.getElementById('myCanvas');
       var context = canvas.getContext('2d');
         
+        var dx = 5;
+        var dy = 5;
         
         // Draws the dotted net down the middle of the court
         context.setLineDash([20, 15]);
@@ -40,16 +52,20 @@
             this.startAngle = 0;
             this.endAngle = Math.PI*2;
             
-            
         };
         
         Ball.prototype.render = function () {
             context.beginPath();
             context.fillStyle="#0000ff";
-            // Draws a circle of radius 20 at the coordinates of x and y on the canvas
+            // Draws a circle of radius 20 at the coordinates of x               // and y on the canvas
             context.arc(this.x,this.y, this.radius, this.startAngle, this.endAngle); 
             context.closePath();
             context.fill();
+            if(this.x<0 || this.x>1000) dx=-dx;
+            if(this.y<0 || this.y>600) dy=-dy;
+       
+            this.x+=dx;
+            this.y+=dy;
         };
         
         var playerPaddle = new Paddle(50, 275);
@@ -59,6 +75,7 @@
         computerPaddle.render();
         ball.render();
         
+        // animate is a variable that will hold one of these functions.
         var animate = window.requestAnimationFrame ||
         window.webkitRequestAnimationFrame ||
         window.mozRequestAnimationFrame    ||
@@ -68,7 +85,9 @@
         
         function step() {
             context.clearRect(0, 0, canvas.width, canvas.height);
-            // render everything
+            playerPaddle.render();
+            computerPaddle.render();
+            ball.render();
             animate(step);
         }
         
