@@ -20,34 +20,81 @@
   <body>
       <div class="net"></div>
     <canvas id="myCanvas" width="1000" height="600" style="border:20px solid #00FF00;"></canvas>
+   
+     
+      
     <script>
       var canvas = document.getElementById('myCanvas');
       var context = canvas.getContext('2d');
         
         var dx = 5;
         var dy = 5;
+        var speed = 30;
+        var player1Score = 0;
+        var player2Score = 0;
         
-        // Draws the dotted net down the middle of the court
-        context.setLineDash([20, 15]);
-        context.beginPath();
-        context.moveTo(500,600);
-        context.lineTo(500, 0);
-        context.stroke();
         
-        function Paddle(x, y) {
+        
+        function Paddle(x, y, speed) {
             this.x = x;
             this.y = y;
+            this.speed = speed;
             this.width = 20;
             this.height = 75;
         }
         
+        Paddle.prototype.moveUp = function () {
+            this.y-=speed;
+            
+            
+            
+            
+            redraw();
+        }
+        
+        Paddle.prototype.moveDown = function() {
+            this.y+=speed;
+            redraw();
+        }
+        
+        window.addEventListener('keydown', function(event){
+            if((event.keyCode == 38)) {
+                
+            playerPaddle.moveUp();
+                
+            if (playerPaddle.y <= 10) {
+            playerPaddle.y = 0;
+            console.log(playerPaddle);
+                
+            }
+            
+            
+            }
+    
+            if((event.keyCode == 40)) {
+                
+            playerPaddle.moveDown();
+                
+            if ((playerPaddle.y + playerPaddle.height) >= 590) {
+            playerPaddle.y = 600 - playerPaddle.height;
+            console.log(playerPaddle);
+        }
+                
+            }
+            
+        }, false);
+        
         Paddle.prototype.render = function () {
             context.fillRect(this.x, this.y, this.width, this.height);
+            
+            
         };
         
         function Ball(x, y) {
             this.x = x;
             this.y = y;
+            //this.x = 400;
+            //this.y = 400;
             this.radius = 20;
             this.startAngle = 0;
             this.endAngle = Math.PI*2;
@@ -61,19 +108,42 @@
             context.arc(this.x,this.y, this.radius, this.startAngle, this.endAngle); 
             context.closePath();
             context.fill();
-            if(this.x<0 || this.x>1000) dx=-dx;
-            if(this.y<0 || this.y>600) dy=-dy;
-       
-            this.x+=dx;
-            this.y+=dy;
         };
         
+        Ball.prototype.move = function () {
+          if(this.x<5) {
+                player2Score=player2Score+1
+                dx=-dx;
+            };
+               
+            if(this.x>995) {
+                player1Score=player1Score+1;
+                dx=-dx;
+            };
+               
+            if(this.y<20 || this.y>580) dy=-dy;
+            
+       
+            this.x-=dx;
+            this.y-=dy;
+            
+            // ball collission with player paddle
+            if((this.x - this.radius == playerPaddle.x + (playerPaddle.width / 2)) && (this.y >= playerPaddle.y) && this.y <= playerPaddle.y + playerPaddle.height) dx = -dx;
+            
+            // ball collission with computer paddle
+            if((this.x + this.radius == computerPaddle.x + (computerPaddle.width / 2)) && (this.y >= computerPaddle.y) && this.y <= computerPaddle.y + computerPaddle.height) dx = -dx;
+        };
+        
+        
+        
         var playerPaddle = new Paddle(50, 275);
-        var computerPaddle = new Paddle(900, 275);
-        var ball = new Ball(100, 100); 
+        var computerPaddle = new Paddle(925, 275);
+        var ball = new Ball(500, 300); 
         playerPaddle.render();
         computerPaddle.render();
         ball.render();
+        
+        
         
         // animate is a variable that will hold one of these functions.
         var animate = window.requestAnimationFrame ||
@@ -83,11 +153,20 @@
         window.msRequestAnimationFrame     ||
         function(callback) { window.setTimeout(callback, 1000/60) };
         
-        function step() {
+        function redraw() {
             context.clearRect(0, 0, canvas.width, canvas.height);
+            context.font = "50px Arial";
+            context.fillText(player1Score, 50, 50);
+            context.fillText(player2Score, 925, 50);
             playerPaddle.render();
             computerPaddle.render();
             ball.render();
+            console.log(playerPaddle.y);
+        }
+        
+        function step() {
+            ball.move();
+            redraw();
             animate(step);
         }
         
