@@ -29,7 +29,8 @@
         
         var dx = 5;
         var dy = 5;
-        var speed = 30;
+        var speed = 50;
+        var computerSpeed = 5;
         var player1Score = 0;
         var player2Score = 0;
         
@@ -59,26 +60,26 @@
         
         window.addEventListener('keydown', function(event){
             if((event.keyCode == 38)) {
-                
+            // If you press the up arrow, paddle moves up    
             playerPaddle.moveUp();
                 
             if (playerPaddle.y <= 10) {
             playerPaddle.y = 0;
-            console.log(playerPaddle);
+            
                 
-            }
+                }
             
             
             }
     
             if((event.keyCode == 40)) {
-                
+            // press down arrow, paddle moves down    
             playerPaddle.moveDown();
                 
             if ((playerPaddle.y + playerPaddle.height) >= 590) {
             playerPaddle.y = 600 - playerPaddle.height;
-            console.log(playerPaddle);
-        }
+            
+                }
                 
             }
             
@@ -86,9 +87,48 @@
         
         Paddle.prototype.render = function () {
             context.fillRect(this.x, this.y, this.width, this.height);
-            
-            
         };
+        
+        // Computer constructor function
+        function Computer() {
+            // `this` in a function is called `context`
+            // In a constructor function, that represents the instance of the function
+            // We can change that context using `call`, `apply`, `bind`
+            // Here, we are piggy backing off of the `Paddle` constructor, 
+            // changing the context of it to the instance of the Computer
+            // and passing in all arguments passed to this constructor to it.
+            Paddle.apply(this, arguments);
+        }
+        
+        // We set the `Computer.prototype` to an obejct created from `Paddle.prototype`
+        // so we can inherit all of the functions on the `Paddle.prototype` without having to 
+        // duplicate the code.
+        Computer.prototype = Object.create(Paddle.prototype);
+        Computer.prototype.autoMove = function () {
+            // Put the code to automove the computer's paddle here
+            console.log(ball.y);
+            console.log(computerPaddle.y);
+            if (dy > 0 && computerPaddle.y > ball.y) {
+                
+            
+            computerPaddle.y-=computerSpeed;
+                // stops paddle if it reaches top
+                if (computerPaddle.y <= 10) {
+                    computerPaddle.y = 0;
+               }
+            
+        } else if (dy < 0 && computerPaddle.y < ball.y) {
+            
+            
+            
+            computerPaddle.y+=computerSpeed;
+                // stops paddle if it reaches bottom of area
+                if ((computerPaddle.y + computerPaddle.height) >= 590) {
+                    computerPaddle.y = 600 - computerPaddle.height;
+                }
+            }
+        };
+        
         
         function Ball(x, y) {
             this.x = x;
@@ -110,15 +150,20 @@
             context.fill();
         };
         
+        //This is what happens if the ball goes off left side
         Ball.prototype.move = function () {
           if(this.x<5) {
                 player2Score=player2Score+1
-                dx=-dx;
+                ball.x = 500;
+                ball.y = 300;
+                
             };
-               
+           //What happens if ball goes off right side    
             if(this.x>995) {
                 player1Score=player1Score+1;
                 dx=-dx;
+                ball.x = 500;
+                ball.y = 300;
             };
                
             if(this.y<20 || this.y>580) dy=-dy;
@@ -132,12 +177,15 @@
             
             // ball collission with computer paddle
             if((this.x + this.radius == computerPaddle.x + (computerPaddle.width / 2)) && (this.y >= computerPaddle.y) && this.y <= computerPaddle.y + computerPaddle.height) dx = -dx;
+            
+            
         };
         
         
         
+        
         var playerPaddle = new Paddle(50, 275);
-        var computerPaddle = new Paddle(925, 275);
+        var computerPaddle = new Computer(925, 275);
         var ball = new Ball(500, 300); 
         playerPaddle.render();
         computerPaddle.render();
@@ -156,16 +204,20 @@
         function redraw() {
             context.clearRect(0, 0, canvas.width, canvas.height);
             context.font = "50px Arial";
-            context.fillText(player1Score, 50, 50);
-            context.fillText(player2Score, 925, 50);
+            context.fillText(player1Score, 90, 50);
+            context.fillText(player2Score, 875, 50);
             playerPaddle.render();
             computerPaddle.render();
             ball.render();
-            console.log(playerPaddle.y);
+            //console.log(dy);
+            
+            
+            
         }
         
         function step() {
             ball.move();
+            computerPaddle.autoMove();
             redraw();
             animate(step);
         }
